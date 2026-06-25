@@ -12,6 +12,8 @@ app.use(express.json());
 app.use(cookieParser())
 
 app.get("/api/health", (req, res) => {
+
+    console.log("Health Route Hitcurl -i http://localhost:5000/api/health")
   res.status(200).json({
     success: true,
     message: "API is running",
