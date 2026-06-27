@@ -9,7 +9,9 @@ class ApiError extends Error {
 
         this.statusCode = statusCode;
         this.name = "ApiError";
-        
+
         Error.captureStackTrace(this, this.constructor)
     }
 }
+
+export default ApiError;
