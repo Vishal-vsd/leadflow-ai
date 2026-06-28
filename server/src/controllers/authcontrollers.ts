@@ -6,24 +6,16 @@ import asyncHandler from "../utils/asyncHandler";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
-
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      throw new ApiError(
-        400,
-        "All fields are required"
-      );
+      throw new ApiError(400, "All fields are required");
     }
 
-    const existingUser =
-      await User.findOne({ email });
+    const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      throw new ApiError(
-        409,
-        "User already exists"
-      );
+      throw new ApiError(409, "User already exists");
     }
 
     const user = await User.create({
@@ -32,23 +24,15 @@ export const registerUser = asyncHandler(
       password,
     });
 
-    const createdUser =
-      await User.findById(user._id)
-        .select("-password");
+    const createdUser = await User.findById(user._id).select("-password");
 
     if (!createdUser) {
-      throw new ApiError(
-        500,
-        "Failed to create user"
-      );
+      throw new ApiError(500, "Failed to create user");
     }
 
-    return res.status(201).json(
-      new ApiResponse(
-        201,
-        createdUser,
-        "User registered successfully"
-      )
-    );
-  }
+    return res
+      .status(201)
+      .json(new ApiResponse(201, createdUser, "User registered successfully"));
+  },
 );
+
