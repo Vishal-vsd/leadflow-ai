@@ -36,3 +36,46 @@ export const registerUser = asyncHandler(
   },
 );
 
+export const loginUser = asyncHandler(
+    async(req: Request, res: Response) => {
+        const {email, password} = req.body;
+        if(!email || !password){
+            throw new ApiError(400, "All fields are required")
+        }
+        const user = await User.findOne({email})
+
+        if(!user){
+            throw new ApiError(401, "Invalid credentials");
+        }
+        const isMatch = await user.comparePassword(password);
+        if(!isMatch){
+            throw new ApiError(401, "Invalid credentials")
+        }
+
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({
+            validateBeforeSave: false
+        })
+
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+        }
+
+        res.cookie("accessToken", accessToken, cookieOptions);
+        res.cookie("refreshToken", refreshToken, cookieOptions);
+
+        const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                loggedInUser,
+                "Login successful"
+            )
+        )
+    }
+)
