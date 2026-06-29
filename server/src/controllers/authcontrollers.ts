@@ -62,7 +62,7 @@ export const loginUser = asyncHandler(
 
         const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
         }
 
         res.cookie("accessToken", accessToken, cookieOptions);
