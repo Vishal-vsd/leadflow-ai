@@ -29,6 +29,5 @@ export const authMiddleware = async (
   }
 
   (req as any).user = user;
-
   next();
 };
