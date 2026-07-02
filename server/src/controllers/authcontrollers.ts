@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError";
 import User from "../models/User";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -105,23 +106,63 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     },
   );
 
-  if(!user){
-    throw new ApiError(404, "User not found")
+  if (!user) {
+    throw new ApiError(404, "User not found");
   }
 
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production"
-  }
-  
+    secure: process.env.NODE_ENV === "production",
+  };
+
   res.clearCookie("accessToken", cookieOptions);
   res.clearCookie("refreshToken", cookieOptions);
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      null,
-      "Logged out successfully"
-    )
-  )
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Logged out successfully"));
 });
+
+export const refreshAccessToken = asyncHandler(
+  async (req: Request, res: Response) => {
+    const incomingRefreshToken = req.cookies.refreshToken;
+
+    if (!incomingRefreshToken) {
+      throw new ApiError(401, "Refresh token missing");
+    }
+
+    const decoded = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET!,
+    ) as JwtPayload;
+
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh token is not valid");
+    }
+
+    const accessToken = user?.generateAccessToken();
+    const refreshToken = user?.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+
+    await user.save({
+      validateBeforeSave: false,
+    })
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    };
+
+    res
+      .cookie("accessToken", accessToken, cookieOptions)
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .status(200)
+      .json(new ApiResponse(200, null, "Token refreshed successfully"));
+  },
+);
