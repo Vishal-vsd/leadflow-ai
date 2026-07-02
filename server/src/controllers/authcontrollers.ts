@@ -78,8 +78,8 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user;
-  if(!userId){
-    throw new ApiError(404, "Id not found")
+  if (!userId) {
+    throw new ApiError(404, "Id not found");
   }
   const user = await User.findById(userId).select("-password -refreshToken");
 
@@ -88,4 +88,40 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
   }
 
   res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
+});
+
+export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user._id;
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $unset: {
+        refreshToken: 1,
+      },
+    },
+    {
+      new: true,
+    },
+  );
+
+  if(!user){
+    throw new ApiError(404, "User not found")
+  }
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production"
+  }
+  
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      null,
+      "Logged out successfully"
+    )
+  )
 });
