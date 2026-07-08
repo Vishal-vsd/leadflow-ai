@@ -3,6 +3,7 @@ import asyncHandler from "../utils/asyncHandler";
 import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import Lead from "../models/Lead";
+import mongoose from "mongoose";
 
 export const createLead = asyncHandler(
     async (req: Request, res: Response) => {
@@ -76,16 +77,21 @@ export const getLeads = asyncHandler(
 )
 
 export const getLeadById = asyncHandler(
-    async(req: Request, res: Response) => {
-        const {id} = req.params;
+    async (req: Request, res: Response) => {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id as string)) {
+            throw new ApiError(400, "Invalid lead id");
+        }
+
         const userId = (req as any).user._id;
-        
+
         const lead = await Lead.findOne({
             _id: id,
             assignedTo: userId
         })
 
-        if(!lead){
+        if (!lead) {
             throw new ApiError(404, "Lead not found")
         }
 
@@ -94,6 +100,57 @@ export const getLeadById = asyncHandler(
                 200,
                 lead,
                 "Lead fetched successfully"
+            )
+        )
+    }
+)
+
+export const updateLead = asyncHandler(
+    async (req: Request, res: Response) => {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id as string)) {
+
+            throw new ApiError(400, "Invalid lead id");
+
+        }
+
+        const userId = (req as any).user._id
+
+        const allowedFields = [
+            "title", "email", "name", "phone", "company", "status", "source", "notes"
+        ]
+
+        const updates: Record<string, any> = {};
+
+        allowedFields.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                updates[field] = req.body[field];
+            }
+        });
+        const updateLead = await Lead.findOneAndUpdate(
+            {
+                _id: id,
+                assignedTo: userId
+            },
+            {
+                $set: updates,
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        )
+
+        if(!updateLead){
+            throw new ApiError(404, "Lead not found")
+        }
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                updateLead,
+                "Lead updated successfully"
             )
         )
     }
