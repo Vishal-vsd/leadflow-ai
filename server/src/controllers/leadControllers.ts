@@ -142,7 +142,7 @@ export const updateLead = asyncHandler(
             }
         )
 
-        if(!updateLead){
+        if (!updateLead) {
             throw new ApiError(404, "Lead not found")
         }
 
@@ -157,9 +157,9 @@ export const updateLead = asyncHandler(
 )
 
 export const deleteLead = asyncHandler(
-    async(req: Request, res: Response) => {
-        const {id} = req.params
-        if(!mongoose.Types.ObjectId.isValid(id as string)){
+    async (req: Request, res: Response) => {
+        const { id } = req.params
+        if (!mongoose.Types.ObjectId.isValid(id as string)) {
             throw new ApiError(400, "Invalid lead ID")
         }
         const userId = (req as any).user._id;
@@ -169,7 +169,7 @@ export const deleteLead = asyncHandler(
             assignedTo: userId
         })
 
-        if(!deletedLead){
+        if (!deletedLead) {
             throw new ApiError(404, "Lead not found")
         }
 
@@ -178,6 +178,105 @@ export const deleteLead = asyncHandler(
                 200,
                 null,
                 "Lead deleted successfully!"
+            )
+        )
+    }
+)
+
+export const getLeadStats = asyncHandler(
+    async (req: Request, res: Response) => {
+        const userId = (req as any).user._id
+
+        // const totalLeads = await Lead.countDocuments({
+        //     assignedTo: userId
+        // })
+
+        // const newLeads = await Lead.countDocuments({
+        //     assignedTo: userId,
+        //     status: "new"
+        // })
+
+        // const contactedLeads = await Lead.countDocuments({
+        //     assignedTo: userId,
+        //     status: "contacted"
+        // })
+        // const qualifiedLeads = await Lead.countDocuments({
+        //     assignedTo: userId,
+        //     status: "qualified"
+        // })
+
+        // const proposalLeads = await Lead.countDocuments({
+        //     assignedTo: userId,
+        //     status: "proposal"
+        // })
+
+        // const wonLeads = await Lead.countDocuments({
+        //     assignedTo: userId,
+        //     status: "won"
+        // })
+
+        // const lostLeads = await Lead.countDocuments({
+        //     assignedTo: userId,
+        //     status: "lost"
+        // })
+
+        // using aggregation pipeline
+
+        const stats = await Lead.aggregate([
+            {
+                $match: {
+                    assignedTo: userId
+                },
+            },
+            {
+                $group: {
+                    _id: "$status",
+                    count: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        const leadStats = {
+            totalLeads: 0,
+            newLeads: 0,
+            contactedLeads: 0,
+            qualifiedLeads: 0,
+            proposalLeads: 0,
+            wonLeads: 0,
+            lostLeads: 0
+        }
+
+        stats.forEach((item) => {
+            leadStats.totalLeads += item.count;
+
+            switch (item._id){
+                case "new" : leadStats.newLeads = item.count;
+                break;
+
+                case "contacted": leadStats.contactedLeads = item.count;
+                break;
+
+                case "qualified": leadStats.qualifiedLeads = item.count;
+                break;
+
+                case "proposal": leadStats.proposalLeads = item.count;
+                break;
+
+                case "won": leadStats.wonLeads = item.count;
+                break;
+
+                case "lost": leadStats.lostLeads = item.count;
+                break;
+            }
+        }) 
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                leadStats,
+                "Lead stats fetched successfully!"
             )
         )
     }
