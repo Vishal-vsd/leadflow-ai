@@ -46,16 +46,107 @@ export const createLead = asyncHandler(
 
 export const getLeads = asyncHandler(
     async (req: Request, res: Response) => {
-        const userId = (req as any).user._id
-        const page = Math.max(1, Number(req.query.page) || 1)
-        const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10))
+        const userId = (req as any).user._id;
 
+        // Pagination
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const leads = await Lead.find({ assignedTo: userId }).sort({ createdAt: -1 }).skip(skip).limit(limit)
+        // Filters
+        const status = req.query.status as string;
+        const search = req.query.search as string;
+        const sort = req.query.sort as string;
 
-        const totalLeads = await Lead.countDocuments({ assignedTo: userId })
-        const totalPages = Math.ceil(totalLeads / limit)
+        // Base Query
+        const query: any = {
+            assignedTo: userId,
+        };
+
+        // Status Filter
+        if (status) {
+            query.status = status;
+        }
+
+        // Search
+        if (search) {
+            query.$or = [
+                {
+                    name: {
+                        $regex: search,
+                        $options: "i",
+                    },
+                },
+                {
+                    email: {
+                        $regex: search,
+                        $options: "i",
+                    },
+                },
+                {
+                    company: {
+                        $regex: search,
+                        $options: "i",
+                    },
+                },
+            ];
+        }
+
+        // Sorting
+        let sortOption: any = {
+            createdAt: -1,
+        };
+
+        if (sort === "oldest") {
+            sortOption = {
+                createdAt: 1,
+            };
+        }
+
+        if (sort === "latest") {
+            sortOption = {
+                createdAt: -1,
+            };
+        }
+
+        // const leads = await Lead.find(query)
+        // const totalLeads = await Lead.countDocuments(query)
+
+        // optimized code by using aggregation and $facet to use one pipeline to fetch both leads and totalLeads
+        
+        const result = await Lead.aggregate([
+            {
+                $match: query
+            },
+            {
+                $facet: {
+                    leads: [
+                        {
+                            $sort: sortOption
+                        },
+                        {
+                            $skip: skip
+                        },
+                        {
+                            $limit: limit
+                        }
+                    ],
+                    totalCount: [
+                        {
+                            $count: "count"
+                        }
+                    ]
+                }
+            }
+        ])
+
+        const leads = result[0].leads;
+
+        const totalLeads = result[0].totalCount[0]?.count || 0
+
+        const totalPages = Math.ceil(
+            totalLeads / limit
+        );
 
         return res.status(200).json(
             new ApiResponse(
@@ -66,16 +157,14 @@ export const getLeads = asyncHandler(
                         page,
                         limit,
                         totalLeads,
-                        totalPages
-                    }
+                        totalPages,
+                    },
                 },
                 "Leads fetched successfully!"
             )
-        )
-
+        );
     }
-)
-
+);
 export const getLeadById = asyncHandler(
     async (req: Request, res: Response) => {
         const { id } = req.params;
@@ -251,26 +340,26 @@ export const getLeadStats = asyncHandler(
         stats.forEach((item) => {
             leadStats.totalLeads += item.count;
 
-            switch (item._id){
-                case "new" : leadStats.newLeads = item.count;
-                break;
+            switch (item._id) {
+                case "new": leadStats.newLeads = item.count;
+                    break;
 
                 case "contacted": leadStats.contactedLeads = item.count;
-                break;
+                    break;
 
                 case "qualified": leadStats.qualifiedLeads = item.count;
-                break;
+                    break;
 
                 case "proposal": leadStats.proposalLeads = item.count;
-                break;
+                    break;
 
                 case "won": leadStats.wonLeads = item.count;
-                break;
+                    break;
 
                 case "lost": leadStats.lostLeads = item.count;
-                break;
+                    break;
             }
-        }) 
+        })
 
         return res.status(200).json(
             new ApiResponse(
