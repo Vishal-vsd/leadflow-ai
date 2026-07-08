@@ -56,7 +56,7 @@ export const getLeads = asyncHandler(
         const totalLeads = await Lead.countDocuments({ assignedTo: userId })
         const totalPages = Math.ceil(totalLeads / limit)
 
-        res.status(200).json(
+        return res.status(200).json(
             new ApiResponse(
                 200,
                 {
@@ -72,5 +72,29 @@ export const getLeads = asyncHandler(
             )
         )
 
+    }
+)
+
+export const getLeadById = asyncHandler(
+    async(req: Request, res: Response) => {
+        const {id} = req.params;
+        const userId = (req as any).user._id;
+        
+        const lead = await Lead.findOne({
+            _id: id,
+            assignedTo: userId
+        })
+
+        if(!lead){
+            throw new ApiError(404, "Lead not found")
+        }
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                lead,
+                "Lead fetched successfully"
+            )
+        )
     }
 )
