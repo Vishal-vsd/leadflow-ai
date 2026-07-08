@@ -128,7 +128,7 @@ export const updateLead = asyncHandler(
                 updates[field] = req.body[field];
             }
         });
-        const updateLead = await Lead.findOneAndUpdate(
+        const updatedLead = await Lead.findOneAndUpdate(
             {
                 _id: id,
                 assignedTo: userId
@@ -149,8 +149,35 @@ export const updateLead = asyncHandler(
         return res.status(200).json(
             new ApiResponse(
                 200,
-                updateLead,
+                updatedLead,
                 "Lead updated successfully"
+            )
+        )
+    }
+)
+
+export const deleteLead = asyncHandler(
+    async(req: Request, res: Response) => {
+        const {id} = req.params
+        if(!mongoose.Types.ObjectId.isValid(id as string)){
+            throw new ApiError(400, "Invalid lead ID")
+        }
+        const userId = (req as any).user._id;
+
+        const deletedLead = await Lead.findOneAndDelete({
+            _id: id,
+            assignedTo: userId
+        })
+
+        if(!deletedLead){
+            throw new ApiError(404, "Lead not found")
+        }
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                null,
+                "Lead deleted successfully!"
             )
         )
     }
