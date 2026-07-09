@@ -48,7 +48,7 @@ export const analyzeLeadWithAI = async (
 
     const result = JSON.parse(cleanedText!);
 
-    return result;
+    return result as AIAnalysis;
 }
 
 export default ai;

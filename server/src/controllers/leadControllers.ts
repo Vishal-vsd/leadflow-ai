@@ -4,7 +4,7 @@ import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import Lead from "../models/Lead";
 import mongoose from "mongoose";
-import { analyzeLeadWithAI } from "../services/geminiService";
+import { AIAnalysis, analyzeLeadWithAI } from "../services/geminiService";
 
 export const createLead = asyncHandler(
     async (req: Request, res: Response) => {
@@ -22,12 +22,23 @@ export const createLead = asyncHandler(
             throw new ApiError(409, "Lead already exists")
         }
 
-        const analysis = await analyzeLeadWithAI({
-            name,
-            company,
-            source,
-            notes
-        })
+        let analysis: AIAnalysis = {
+            score: 0,
+            priority: "low" ,
+            summary: ""
+        }
+
+        try {
+            analysis = await analyzeLeadWithAI({
+                name,
+                company,
+                source,
+                notes
+            })
+        } catch (error) {
+            console.error("AI Analysis Failed:", error)
+        }
+
         const lead = await Lead.create(
             {
                 title,
