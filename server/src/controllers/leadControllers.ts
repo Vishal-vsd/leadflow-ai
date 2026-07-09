@@ -4,6 +4,7 @@ import ApiError from "../utils/apiError";
 import ApiResponse from "../utils/apiResponse";
 import Lead from "../models/Lead";
 import mongoose from "mongoose";
+import { analyzeLeadWithAI } from "../services/geminiService";
 
 export const createLead = asyncHandler(
     async (req: Request, res: Response) => {
@@ -372,3 +373,26 @@ export const getLeadStats = asyncHandler(
     }
 );
 
+export const analyzeLeadWithAI = asyncHandler(
+    async(req: Request, res: Response) => {
+        const {id} = req.params;
+        if(!mongoose.Types.ObjectId.isValid(id as string)){
+            throw new ApiError(400, "Invalid lead id")
+        }
+        const userId = (req as any).user._id;
+
+        const lead = await Lead.findOne({
+            _id: id,
+            assignedTo: userId,
+        })
+
+        if(!lead){
+            throw new ApiError(
+                404,
+                "Lead not found"
+            )
+        }
+
+        const analysis = await analyzeLeadWithAI()
+    }
+)

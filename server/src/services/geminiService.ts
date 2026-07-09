@@ -4,16 +4,20 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 })
 
-export default ai;
+interface AIAnalysis {
+    score: number;
+    priority: "low" | "medium" | "high";
+    summary: string;
+}
 
 export const analyzeLeadWithAI = async (
     lead: {
         name: string,
-        company?: string,
-        source?: string,
-        notes?: string,
+        company?: string | null,
+        source?: string | null,
+        notes?: string | null,
     }
-) => {
+): Promise<AIAnalysis>=> {
     const prompt = `
     Analyze this sales lead and return ONLY valid JSON.
 
@@ -46,3 +50,5 @@ export const analyzeLeadWithAI = async (
 
     return result;
 }
+
+export default ai;
