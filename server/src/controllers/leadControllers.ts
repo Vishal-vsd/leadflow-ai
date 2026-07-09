@@ -113,7 +113,7 @@ export const getLeads = asyncHandler(
         // const totalLeads = await Lead.countDocuments(query)
 
         // optimized code by using aggregation and $facet to use one pipeline to fetch both leads and totalLeads
-        
+
         const result = await Lead.aggregate([
             {
                 $match: query
@@ -165,6 +165,7 @@ export const getLeads = asyncHandler(
         );
     }
 );
+
 export const getLeadById = asyncHandler(
     async (req: Request, res: Response) => {
         const { id } = req.params;
@@ -369,4 +370,5 @@ export const getLeadStats = asyncHandler(
             )
         )
     }
-)
+);
+

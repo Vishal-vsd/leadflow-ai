@@ -88,7 +88,7 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(404, "User not found");
   }
 
-  res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
+  return res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
 });
 
 export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
@@ -159,7 +159,7 @@ export const refreshAccessToken = asyncHandler(
       secure: process.env.NODE_ENV === "production",
     };
 
-    res
+    return res
       .cookie("accessToken", accessToken, cookieOptions)
       .cookie("refreshToken", refreshToken, cookieOptions)
       .status(200)
