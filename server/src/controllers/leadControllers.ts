@@ -22,6 +22,12 @@ export const createLead = asyncHandler(
             throw new ApiError(409, "Lead already exists")
         }
 
+        const analysis = await analyzeLeadWithAI({
+            name,
+            company,
+            source,
+            notes
+        })
         const lead = await Lead.create(
             {
                 title,
@@ -32,6 +38,9 @@ export const createLead = asyncHandler(
                 source,
                 notes,
                 assignedTo: userId,
+                score: analysis.score,
+                priority: analysis.priority,
+                aiSummary: analysis.summary
             }
         )
 
@@ -373,26 +382,67 @@ export const getLeadStats = asyncHandler(
     }
 );
 
-export const analyzeLeadWithAI = asyncHandler(
-    async(req: Request, res: Response) => {
-        const {id} = req.params;
-        if(!mongoose.Types.ObjectId.isValid(id as string)){
-            throw new ApiError(400, "Invalid lead id")
+export const analyzeLead = asyncHandler(
+    async (req: Request, res: Response) => {
+        const { id } = req.params;
+
+        if (
+            !mongoose.Types.ObjectId.isValid(id as string)
+        ) {
+            throw new ApiError(
+                400,
+                "Invalid lead id"
+            );
         }
-        const userId = (req as any).user._id;
+
+        const userId =
+            (req as any).user._id;
 
         const lead = await Lead.findOne({
             _id: id,
             assignedTo: userId,
-        })
+        });
 
-        if(!lead){
+        if (!lead) {
             throw new ApiError(
                 404,
                 "Lead not found"
-            )
+            );
         }
 
-        const analysis = await analyzeLeadWithAI()
+        const analysis =
+            await analyzeLeadWithAI({
+                name: lead.name,
+                company: lead.company || undefined,
+                source: lead.source || undefined,
+                notes: lead.notes || undefined,
+            });
+
+        if (
+            !analysis.score ||
+            !analysis.priority
+        ) {
+            throw new ApiError(
+                500,
+                "Invalid AI response"
+            );
+        }
+        lead.score = analysis.score;
+
+        lead.priority =
+            analysis.priority;
+
+        lead.aiSummary =
+            analysis.summary;
+
+        await lead.save();
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                lead,
+                "Lead analyzed successfully"
+            )
+        );
     }
-)
+);
