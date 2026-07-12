@@ -502,3 +502,56 @@ export const getSourceStats = asyncHandler(
         )
     }
 )
+
+export const getConversionStats = asyncHandler(
+    async(req:Request, res:Response) => {
+        const userId = (req as any).user._id;
+
+        const stats = await Lead.aggregate([
+            {
+                $match: {
+                    assignedTo: userId
+                }
+            },
+            {
+                $group: {
+                    _id: "$status",
+                    count: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        let totalLeads = 0;
+        let wonLeads = 0;
+        let lostLeads = 0;
+
+        stats.forEach((item) => {
+            totalLeads += item.count;
+
+            if(item._id === "won"){
+                wonLeads = item.count;
+            }
+            if(item._id === "lost"){
+                lostLeads = item.count
+            }
+        });
+
+        const conversionRate = totalLeads === 0 ? 0 
+        : Number(((wonLeads/ totalLeads) * 100).toFixed(2))
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                {
+                    totalLeads,
+                    wonLeads,
+                    lostLeads,
+                    conversionRate
+                },
+                "Conversion stats fetched successfully"
+            )
+        )
+    }
+)
