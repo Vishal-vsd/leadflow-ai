@@ -4,7 +4,7 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 })
 
-interface AIAnalysis {
+export interface AIAnalysis {
     score: number;
     priority: "low" | "medium" | "high";
     summary: string;
