@@ -457,3 +457,48 @@ export const analyzeLead = asyncHandler(
         );
     }
 );
+
+export const getSourceStats = asyncHandler(
+    async(req: Request, res: Response) => {
+        const userId = (req as any).user._id;
+
+        const stats = await Lead.aggregate([
+            {
+                $match: {
+                    assignedTo: userId
+                }
+            },
+            {
+                $group: {
+                    _id: "$source",
+                    count: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        const sourceStats = {
+            website: 0,
+            facebook: 0,
+            linkedin: 0,
+            instagram: 0,
+            referral: 0,
+            other: 0
+        }
+
+        stats.forEach((item) => {
+            sourceStats[
+                item._id as keyof typeof sourceStats
+            ] = item.count
+        })
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                sourceStats,
+                "Source analytics fetched successfully"
+            )
+        )
+    }
+)
