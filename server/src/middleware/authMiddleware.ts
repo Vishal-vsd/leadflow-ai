@@ -23,7 +23,6 @@ export const authMiddleware = async (
   const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!) as JwtPayload;
 
   const user = await User.findById(decoded._id);
-
   if (!user) {
     throw new ApiError(401, "Invalid token");
   }

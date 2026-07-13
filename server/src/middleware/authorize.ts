@@ -3,7 +3,7 @@ import ApiError from "../utils/apiError"
 
 export const authorize = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        const user = (req as any).user._id;
+        const user = (req as any).user;
 
         if (!user) {
             throw new ApiError(
