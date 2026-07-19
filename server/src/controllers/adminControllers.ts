@@ -123,7 +123,7 @@ export const getAllLeadsStats = asyncHandler(
         User.countDocuments()
     ])
 
-        const allLeadStats = {
+        let allLeadStats = {
             totalUsers,
             totalLeads: 0,
             newLeads: 0,
@@ -167,3 +167,41 @@ export const getAllLeadsStats = asyncHandler(
         )
     }
 )
+
+export const getAllSourceStats = asyncHandler(
+    async(req: Request, res: Response) => {
+        const stats = await Lead.aggregate([
+            {
+                $group: {
+                    _id: "$source",
+                    count: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        let allSourceStats = {
+            website: 0,
+            linkedin: 0,
+            referral:0,
+            facebook: 0,
+            instagram: 0,
+            other: 0
+        }
+
+        stats.forEach((item) => {
+            allSourceStats[
+                item._id as keyof typeof allSourceStats
+            ] = item.count
+        })
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                allSourceStats,
+                "Global source stats fetched successfully!"
+            )
+        )
+    }
+) 
