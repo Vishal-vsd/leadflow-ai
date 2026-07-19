@@ -121,7 +121,7 @@ export const getAllLeadsStats = asyncHandler(
             }
         ]),
         User.countDocuments()
-    ])
+        ])
 
         let allLeadStats = {
             totalUsers,
@@ -169,7 +169,7 @@ export const getAllLeadsStats = asyncHandler(
 )
 
 export const getAllSourceStats = asyncHandler(
-    async(req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         const stats = await Lead.aggregate([
             {
                 $group: {
@@ -184,16 +184,18 @@ export const getAllSourceStats = asyncHandler(
         let allSourceStats = {
             website: 0,
             linkedin: 0,
-            referral:0,
+            referral: 0,
             facebook: 0,
             instagram: 0,
             other: 0
         }
 
         stats.forEach((item) => {
-            allSourceStats[
-                item._id as keyof typeof allSourceStats
-            ] = item.count
+            if (item._id) {
+                allSourceStats[
+                    item._id as keyof typeof allSourceStats
+                ] = item.count
+            }
         })
 
         return res.status(200).json(
@@ -204,4 +206,50 @@ export const getAllSourceStats = asyncHandler(
             )
         )
     }
-) 
+)
+
+export const getAllConversionStats = asyncHandler(
+    async (req: Request, res: Response) => {
+        const stats = await Lead.aggregate([
+            {
+                $group: {
+                    _id: "$status",
+                    count: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        let totalLeads = 0
+        let wonLeads = 0
+        let lostLeads = 0
+
+        stats.forEach((item) => {
+            totalLeads += item.count
+
+            if (item._id === "won") {
+                wonLeads = item.count
+            }
+            if (item._id === "lost") {
+                lostLeads = item.count
+            }
+        })
+
+        const conversionRate = totalLeads === 0 ? 0
+            : Number(((wonLeads / totalLeads) * 100).toFixed(2))
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                {
+                    totalLeads,
+                    wonLeads,
+                    lostLeads,
+                    conversionRate
+                },
+                "Global Conversion stats fetched successfully"
+            )
+        )
+    }
+)
