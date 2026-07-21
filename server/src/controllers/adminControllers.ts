@@ -1,8 +1,10 @@
+import mongoose from "mongoose";
 import Lead from "../models/Lead";
 import User from "../models/User";
 import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
 import { Request, Response } from "express";
+import ApiError from "../utils/apiError";
 
 export const getAllLeads = asyncHandler(
     async (req: Request, res: Response) => {
@@ -108,7 +110,7 @@ export const getAllLeads = asyncHandler(
     }
 )
 
-export const getAllLeadsStats = asyncHandler(
+export const getAllLeadStats = asyncHandler(
     async (req: Request, res: Response) => {
         const [stats, totalUsers] = await Promise.all([Lead.aggregate([
             {
@@ -255,91 +257,141 @@ export const getAllConversionStats = asyncHandler(
 )
 
 export const getAllUsers = asyncHandler(
-    async(req: Request, res: Response) => {
-       const page = Number(req.query.page) || 1;
-       const limit = Number(req.query.limit) || 10;
-       const search = req.query.search as string;
-       const sort =  req.query.sort as string;
+    async (req: Request, res: Response) => {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+        const search = req.query.search as string;
+        const sort = req.query.sort as string;
 
-       const skip = (page - 1) * limit;
+        const skip = (page - 1) * limit;
 
 
-       const matchQuery: any = {};
+        const matchQuery: any = {};
 
-       let sortOption: any = {
-        createdAt: -1
-       }
-
-       if(search) {
-        matchQuery.$or = [
-            {
-                name: {
-                    $regex: search,
-                    $options: "i"
-                }
-            },
-            {
-                email: {
-                    $regex: search,
-                    $options: "i",
-                }
-            },
-        ]
-       }
-
-       if(sort === "oldest"){
-        sortOption = {createdAt: 1}
-       }
-
-       const result = await User.aggregate([
-        {
-            $match: matchQuery
-        },
-        {
-            $facet: {
-                users: [
-                    {
-                        $sort: sortOption
-                    },
-                    {
-                        $skip: skip
-                    },
-                    {
-                        $limit: limit
-                    },
-                    {
-                        $project: {
-                            password: 0,
-                            refreshToken: 0
-                        }
-                    }
-                ],
-                totalCount: [
-                    {
-                        $count: "count"
-                    }
-                ]
-            }
+        let sortOption: any = {
+            createdAt: -1
         }
-       ])
 
-       const users = result[0].users;
+        if (search) {
+            matchQuery.$or = [
+                {
+                    name: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    email: {
+                        $regex: search,
+                        $options: "i",
+                    }
+                },
+            ]
+        }
 
-       const totalUsers = result[0].totalCount[0]?.count || 0;
+        if (sort === "oldest") {
+            sortOption = { createdAt: 1 }
+        }
 
-       const totalPages = Math.ceil(totalUsers/limit);
-
-       return res.status(200).json(
-        new ApiResponse(
-            200,
+        const result = await User.aggregate([
             {
-                users,
-                totalUsers,
-                currentPage: page,
-                totalPages
+                $match: matchQuery
             },
-            "Users fetched successfully"
+            {
+                $facet: {
+                    users: [
+                        {
+                            $sort: sortOption
+                        },
+                        {
+                            $skip: skip
+                        },
+                        {
+                            $limit: limit
+                        },
+                        {
+                            $project: {
+                                password: 0,
+                                refreshToken: 0
+                            }
+                        }
+                    ],
+                    totalCount: [
+                        {
+                            $count: "count"
+                        }
+                    ]
+                }
+            }
+        ])
+
+        const users = result[0].users;
+
+        const totalUsers = result[0].totalCount[0]?.count || 0;
+
+        const totalPages = Math.ceil(totalUsers / limit);
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                {
+                    users,
+                    totalUsers,
+                    currentPage: page,
+                    totalPages
+                },
+                "Users fetched successfully"
+            )
         )
-       )
+    }
+)
+
+export const updateUserRole = asyncHandler(
+    async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(id as string)) {
+            throw new ApiError(
+                400, "Invalid User ID"
+            )
+        }
+
+        if (!["admin", "user"].includes(role)) {
+            throw new ApiError(400, "Invalid role")
+        }
+
+        const adminId = (req as any).user._id;
+
+        if (adminId.toString() === id && role === "user") {
+            throw new ApiError(400, "You cannot change  your own role")
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            {
+                role
+            },
+            {
+                new: true,
+                runValidators: true,
+                select: "-password -refreshToken"
+            }
+        );
+
+        if (!updatedUser) {
+            throw new ApiError(
+                404,
+                "User not found"
+            )
+        }
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                updatedUser,
+                "User role updated successfully"
+            )
+        )
     }
 )
