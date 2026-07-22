@@ -9,6 +9,7 @@ import {
   getAllSourceStats,
   getAllConversionStats,
   getAllUsers,
+  updateUserRole,
 } from "../controllers/adminControllers";
 
 const router = express.Router();
@@ -50,5 +51,7 @@ router.get(
   authorize("admin"),
   getAllUsers
 );
+
+router.patch("/users/:id/role", authMiddleware, authorize("admin"), updateUserRole)
 
 export default router;
