@@ -395,3 +395,45 @@ export const updateUserRole = asyncHandler(
         )
     }
 )
+
+export const getDashboardData = asyncHandler(
+    async (req, res) => {
+        const [totalUsers, leadStats, sourceStats, conversionStats] =
+            await Promise.all([
+                User.countDocuments(),
+
+                Lead.aggregate([
+                    {
+                        $group: {
+                            _id: "$status",
+                            count: {
+                                $sum: 1
+                            }
+                        }
+                    }
+                ]),
+
+                Lead.aggregate([
+                    {
+                        $group: {
+                            _id: "$source",
+                            count: {
+                                $sum: 1
+                            }
+                        }
+                    }
+                ]),
+
+                Lead.aggregate([
+                    {
+                        $group: {
+                            _id: "$status",
+                            count: {
+                                $sum: 1
+                            }
+                        }
+                    }
+                ])
+            ])
+    }
+)

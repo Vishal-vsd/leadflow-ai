@@ -24,7 +24,7 @@ export const createLead = asyncHandler(
 
         let analysis: AIAnalysis = {
             score: 0,
-            priority: "low" ,
+            priority: "low",
             summary: ""
         }
 
@@ -459,7 +459,7 @@ export const analyzeLead = asyncHandler(
 );
 
 export const getSourceStats = asyncHandler(
-    async(req: Request, res: Response) => {
+    async (req: Request, res: Response) => {
         const userId = (req as any).user._id;
 
         const stats = await Lead.aggregate([
@@ -504,7 +504,7 @@ export const getSourceStats = asyncHandler(
 )
 
 export const getConversionStats = asyncHandler(
-    async(req:Request, res:Response) => {
+    async (req: Request, res: Response) => {
         const userId = (req as any).user._id;
 
         const stats = await Lead.aggregate([
@@ -530,16 +530,16 @@ export const getConversionStats = asyncHandler(
         stats.forEach((item) => {
             totalLeads += item.count;
 
-            if(item._id === "won"){
+            if (item._id === "won") {
                 wonLeads = item.count;
             }
-            if(item._id === "lost"){
+            if (item._id === "lost") {
                 lostLeads = item.count
             }
         });
 
-        const conversionRate = totalLeads === 0 ? 0 
-        : Number(((wonLeads/ totalLeads) * 100).toFixed(2))
+        const conversionRate = totalLeads === 0 ? 0
+            : Number(((wonLeads / totalLeads) * 100).toFixed(2))
 
         return res.status(200).json(
             new ApiResponse(
