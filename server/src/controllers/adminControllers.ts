@@ -5,7 +5,7 @@ import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
 import { Request, Response } from "express";
 import ApiError from "../utils/apiError";
-import { getConversionStats, getLeadStats } from "../services/anaylticsService";
+import { getConversionStats, getLeadStats, getSourceStats } from "../services/anaylticsService";
 
 export const getAllLeads = asyncHandler(
     async (req: Request, res: Response) => {
@@ -133,38 +133,12 @@ export const getAllLeadStats = asyncHandler(
 
 export const getAllSourceStats = asyncHandler(
     async (req: Request, res: Response) => {
-        const stats = await Lead.aggregate([
-            {
-                $group: {
-                    _id: "$source",
-                    count: {
-                        $sum: 1
-                    }
-                }
-            }
-        ])
-
-        let allSourceStats = {
-            website: 0,
-            linkedin: 0,
-            referral: 0,
-            facebook: 0,
-            instagram: 0,
-            other: 0
-        }
-
-        stats.forEach((item) => {
-            if (item._id) {
-                allSourceStats[
-                    item._id as keyof typeof allSourceStats
-                ] = item.count
-            }
-        })
+        const sourceStats = await getSourceStats();
 
         return res.status(200).json(
             new ApiResponse(
                 200,
-                allSourceStats,
+                sourceStats,
                 "Global source stats fetched successfully!"
             )
         )

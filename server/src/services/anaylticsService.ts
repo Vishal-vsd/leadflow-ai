@@ -90,3 +90,35 @@ export const getConversionStats = async() => {
 
 }
 
+
+export const getSourceStats = async() => {
+            const stats = await Lead.aggregate([
+            {
+                $group: {
+                    _id: "$source",
+                    count: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        let allSourceStats = {
+            website: 0,
+            linkedin: 0,
+            referral: 0,
+            facebook: 0,
+            instagram: 0,
+            other: 0
+        }
+
+        stats.forEach((item) => {
+            if (item._id) {
+                allSourceStats[
+                    item._id as keyof typeof allSourceStats
+                ] = item.count
+            }
+        })
+
+        return allSourceStats;
+}
