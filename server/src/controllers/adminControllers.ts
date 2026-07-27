@@ -6,6 +6,7 @@ import asyncHandler from "../utils/asyncHandler";
 import { Request, Response } from "express";
 import ApiError from "../utils/apiError";
 import { getConversionStats, getLeadStats, getSourceStats } from "../services/anaylticsService";
+import { getDashoboardStats } from "../services/dashboardService";
 
 export const getAllLeads = asyncHandler(
     async (req: Request, res: Response) => {
@@ -301,43 +302,15 @@ export const updateUserRole = asyncHandler(
 )
 
 export const getDashboardData = asyncHandler(
-    async (req, res) => {
-        const [totalUsers, leadStats, sourceStats, conversionStats] =
-            await Promise.all([
-                User.countDocuments(),
+    async (req: Request, res: Response) => {
+        const dashboardStats = await getDashoboardStats();
 
-                Lead.aggregate([
-                    {
-                        $group: {
-                            _id: "$status",
-                            count: {
-                                $sum: 1
-                            }
-                        }
-                    }
-                ]),
-
-                Lead.aggregate([
-                    {
-                        $group: {
-                            _id: "$source",
-                            count: {
-                                $sum: 1
-                            }
-                        }
-                    }
-                ]),
-
-                Lead.aggregate([
-                    {
-                        $group: {
-                            _id: "$status",
-                            count: {
-                                $sum: 1
-                            }
-                        }
-                    }
-                ])
-            ])
+        return res.status(200).json(
+           new ApiResponse(
+            200,
+            dashboardStats,
+            "Dashboard data fetched successfully"
+           )
+        )
     }
 )
