@@ -54,3 +54,39 @@ export const getLeadStats = async () => {
 
     return leadStats;
 };
+
+
+export const getConversionStats = async() => {
+    const stats = await Lead.aggregate([
+        {
+            $group: {
+                _id: "$status",
+                count: {
+                    $sum: 1
+                }
+            }
+        }
+    ])
+
+    let totalLeads = 0;
+    let wonLeads = 0;
+    let lostLeads = 0;
+
+    stats.forEach((item) => {
+        totalLeads += item.count;
+
+        if(item._id === "won"){
+            wonLeads = item.count
+        }
+        if(item._id === "lost"){
+            lostLeads = item.count
+        }
+    })
+
+    const conversionRate = totalLeads === 0 ? 0 
+    : Number(((wonLeads/totalLeads)*100).toFixed(2))
+
+    return {totalLeads, wonLeads, lostLeads, conversionRate}
+
+}
+

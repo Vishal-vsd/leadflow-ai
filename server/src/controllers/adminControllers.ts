@@ -5,7 +5,7 @@ import ApiResponse from "../utils/apiResponse";
 import asyncHandler from "../utils/asyncHandler";
 import { Request, Response } from "express";
 import ApiError from "../utils/apiError";
-import { getLeadStats } from "../services/anaylticsService";
+import { getConversionStats, getLeadStats } from "../services/anaylticsService";
 
 export const getAllLeads = asyncHandler(
     async (req: Request, res: Response) => {
@@ -173,44 +173,13 @@ export const getAllSourceStats = asyncHandler(
 
 export const getAllConversionStats = asyncHandler(
     async (req: Request, res: Response) => {
-        const stats = await Lead.aggregate([
-            {
-                $group: {
-                    _id: "$status",
-                    count: {
-                        $sum: 1
-                    }
-                }
-            }
-        ])
 
-        let totalLeads = 0
-        let wonLeads = 0
-        let lostLeads = 0
-
-        stats.forEach((item) => {
-            totalLeads += item.count
-
-            if (item._id === "won") {
-                wonLeads = item.count
-            }
-            if (item._id === "lost") {
-                lostLeads = item.count
-            }
-        })
-
-        const conversionRate = totalLeads === 0 ? 0
-            : Number(((wonLeads / totalLeads) * 100).toFixed(2))
+        const conversionStats = await getConversionStats()
 
         return res.status(200).json(
             new ApiResponse(
                 200,
-                {
-                    totalLeads,
-                    wonLeads,
-                    lostLeads,
-                    conversionRate
-                },
+                conversionStats,
                 "Global Conversion stats fetched successfully"
             )
         )
