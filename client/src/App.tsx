@@ -1,12 +1,11 @@
-
-import './App.css'
-
 function App() {
-  return(
-    <h1>
-      LeadFlow AI
-    </h1>
-  )
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <h1 className="text-5xl font-bold text-white">
+        LeadFlow AI 🚀
+      </h1>
+    </div>
+  );
 }
 
-export default App
+export default App;
