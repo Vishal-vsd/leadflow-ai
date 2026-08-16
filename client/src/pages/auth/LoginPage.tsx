@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { Eye, EyeOff, LockKeyhole, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import {
   Card,
   CardContent,
@@ -5,25 +9,125 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import AuthLayout from "@/components/auth/AuthLayout";
 
 const LoginPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <AuthLayout>
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
+      <div className="w-full max-w-md">
+        {/* Branding */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Sparkles className="size-6" />
+          </div>
 
-          <CardDescription>
-            Login to your LeadFlow AI account
-          </CardDescription>
-        </CardHeader>
+          <h1 className="text-2xl font-bold tracking-tight">
+            LeadFlow AI
+          </h1>
 
-        <CardContent>
-          {/* Login form will come here */}
-        </CardContent>
-      </Card>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Manage your leads. Grow your business.
+          </p>
+        </div>
+
+        <Card className="border-border/60 shadow-lg">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-xl">Welcome back</CardTitle>
+
+            <CardDescription>
+              Sign in to your account to continue
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form className="space-y-5">
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
+                <div className="relative">
+                  <LockKeyhole className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    className="pr-10 pl-9"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <Button
+                type="submit"
+                className="h-10 w-full"
+              >
+                Sign in
+              </Button>
+            </form>
+
+            {/* Register */}
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="font-medium text-primary hover:underline"
+              >
+                Create account
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Secure access to your LeadFlow workspace
+        </p>
+      </div>
     </AuthLayout>
   );
 };
