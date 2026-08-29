@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod"
+
+import { loginSchema, type LoginFormData } from "@/schemas/authSchema";
 
 import {
   Card,
@@ -14,9 +18,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import AuthLayout from "@/components/auth/AuthLayout";
+import { useAuth } from "@/context/AuthContext";
 
 const LoginPage = () => {
+  // const navigate = useNavigate();
+  // const { setUser } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
+  const { register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema)
+  })
+
+  const onSubmit = (data: LoginFormData) => {
+    console.log(data)
+  }
 
   return (
     <AuthLayout>
@@ -46,7 +64,7 @@ const LoginPage = () => {
           </CardHeader>
 
           <CardContent>
-            <form className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -56,7 +74,14 @@ const LoginPage = () => {
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
+                )
+                }
               </div>
 
               {/* Password */}
@@ -80,6 +105,7 @@ const LoginPage = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     autoComplete="current-password"
+                    {...register("password")}
                     className="pr-10 pl-9"
                   />
 
@@ -100,6 +126,11 @@ const LoginPage = () => {
                     )}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
               {/* Submit */}
