@@ -3,7 +3,8 @@ import { Eye, EyeOff, LockKeyhole, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
-
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/services/authService";
 import { loginSchema, type LoginFormData } from "@/schemas/authSchema";
 
 import {
@@ -32,8 +33,18 @@ const LoginPage = () => {
     resolver: zodResolver(loginSchema)
   })
 
+  const mutation = useMutation({
+    mutationFn: login,
+    onSuccess: (response) => {
+      console.log(response)
+    },
+    onError: (error) => {
+      console.log(error)
+    }
+
+  })
   const onSubmit = (data: LoginFormData) => {
-    console.log(data)
+    mutation.mutate(data)
   }
 
   return (
