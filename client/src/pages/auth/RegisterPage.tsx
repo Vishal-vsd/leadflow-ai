@@ -22,7 +22,7 @@ const RegisterPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const { register, handleSubmit
+    const { register, handleSubmit, formState: {errors}
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema)
     })
