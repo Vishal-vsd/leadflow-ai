@@ -71,6 +71,11 @@ const RegisterPage = () => {
                                     autoComplete="name"
                                     {...register("fullName")}
                                 />
+                                {errors.fullName && (
+                                    <p className="text-sm text-destrictive">
+                                        {errors.fullName.message}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Email */}
@@ -84,6 +89,12 @@ const RegisterPage = () => {
                                     autoComplete="email"
                                     {...register("email")}
                                 />
+
+                                {errors.email && (
+                                    <p className="text-sm text-destrictive">
+                                        {errors.email.message}
+                                    </p>
+                                )} 
                             </div>
 
                             {/* Password */}
@@ -117,6 +128,11 @@ const RegisterPage = () => {
                                         )}
                                     </button>
                                 </div>
+                                {errors.password && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.password.message}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Confirm Password */}
@@ -156,6 +172,11 @@ const RegisterPage = () => {
                                         )}
                                     </button>
                                 </div>
+                                {errors.confirmPassword && (
+                                    <p className="text-sm text-destructive">
+                                        {errors.confirmPassword.message}
+                                    </p>
+                                )}
                             </div>
 
                             <Button type="submit" className="h-10 w-full">
