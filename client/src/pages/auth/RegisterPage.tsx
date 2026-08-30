@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterFormData } from "@/schemas/authSchema";
+import { useMutation } from "@tanstack/react-query";
+import { register as registerUser } from "@/services/authService";
 
 import {
     Card,
@@ -27,8 +29,21 @@ const RegisterPage = () => {
         resolver: zodResolver(registerSchema)
     })
 
+    const mutation = useMutation({
+        mutationFn: registerUser,
+        onSuccess: (response) => {
+            console.log(response)
+        },
+        onError: (error) => {
+            console.log(error)
+        }
+    })
     const onSubmit = (data: RegisterFormData) => {
-        console.log(data)
+        mutation.mutate({
+            name: data.fullName,
+            email: data.email,
+            password: data.password
+        })
     }
 
     return (
@@ -72,7 +87,7 @@ const RegisterPage = () => {
                                     {...register("fullName")}
                                 />
                                 {errors.fullName && (
-                                    <p className="text-sm text-destrictive">
+                                    <p className="text-sm text-destructive">
                                         {errors.fullName.message}
                                     </p>
                                 )}
@@ -91,7 +106,7 @@ const RegisterPage = () => {
                                 />
 
                                 {errors.email && (
-                                    <p className="text-sm text-destrictive">
+                                    <p className="text-sm text-destructive">
                                         {errors.email.message}
                                     </p>
                                 )} 
