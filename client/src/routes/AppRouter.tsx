@@ -13,6 +13,7 @@ import LeadDetailsPage from "../pages/leads/LeadDetailsPage";
 
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import UsersPage from "../pages/admin/UsersPage";
+import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
     {
@@ -29,28 +30,31 @@ export const router = createBrowserRouter([
         ]
     },
     {
-        element: <MainLayout />,
-        children: [
-            {
-                path: "/",
-                element: <DashboardPage />
-            },
-            {
-                path: "/leads",
-                element: <LeadsPage />
-            },
-            {
-                path: "/leads/:id",
-                element: <LeadDetailsPage />
-            },
-            {
-                path: "/admin",
-                element: <AdminDashboardPage />
-            },
-            {
-                path: "/admin/users",
-                element: <UsersPage />
-            }
-        ]
+        element: <ProtectedRoute />,
+        children: [{
+            element: <MainLayout />,
+            children: [
+                {
+                    path: "/",
+                    element: <DashboardPage />
+                },
+                {
+                    path: "/leads",
+                    element: <LeadsPage />
+                },
+                {
+                    path: "/leads/:id",
+                    element: <LeadDetailsPage />
+                },
+                {
+                    path: "/admin",
+                    element: <AdminDashboardPage />
+                },
+                {
+                    path: "/admin/users",
+                    element: <UsersPage />
+                }
+            ]
+        }]
     }
 ])
