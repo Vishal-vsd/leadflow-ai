@@ -22,7 +22,7 @@ import AuthLayout from "@/components/auth/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
 
 const LoginPage = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   // const { setUser } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +37,7 @@ const LoginPage = () => {
     mutationFn: login,
     onSuccess: (response) => {
       console.log(response)
+      navigate("/")
     },
     onError: (error) => {
       console.log(error)
