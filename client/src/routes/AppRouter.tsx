@@ -13,48 +13,59 @@ import LeadDetailsPage from "../pages/leads/LeadDetailsPage";
 
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage";
 import UsersPage from "../pages/admin/UsersPage";
+
 import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRoute";
 
 export const router = createBrowserRouter([
-    {
-        element: <AuthLayout />,
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/register",
+        element: <RegisterPage />,
+      },
+    ],
+  },
+
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <MainLayout />,
         children: [
-            {
-                path: "/login",
-                element: <LoginPage />
-            },
-            {
-                path: "/register",
-                element: <RegisterPage />
-            }
-        ]
-    },
-    {
-        element: <ProtectedRoute />,
-        children: [{
-            element: <MainLayout />,
+          {
+            path: "/",
+            element: <DashboardPage />,
+          },
+          {
+            path: "/leads",
+            element: <LeadsPage />,
+          },
+          {
+            path: "/leads/:id",
+            element: <LeadDetailsPage />,
+          },
+
+          {
+            element: <AdminRoute />,
             children: [
-                {
-                    path: "/",
-                    element: <DashboardPage />
-                },
-                {
-                    path: "/leads",
-                    element: <LeadsPage />
-                },
-                {
-                    path: "/leads/:id",
-                    element: <LeadDetailsPage />
-                },
-                {
-                    path: "/admin",
-                    element: <AdminDashboardPage />
-                },
-                {
-                    path: "/admin/users",
-                    element: <UsersPage />
-                }
-            ]
-        }]
-    }
-])
+              {
+                path: "/admin",
+                element: <AdminDashboardPage />,
+              },
+              {
+                path: "/admin/users",
+                element: <UsersPage />,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+]);

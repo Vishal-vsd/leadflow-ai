@@ -23,7 +23,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  // const { setUser } = useAuth();
+  const { setUser } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const { register,
@@ -36,7 +36,7 @@ const LoginPage = () => {
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (response) => {
-      console.log(response)
+      setUser(response.data)
       navigate("/")
     },
     onError: (error) => {
