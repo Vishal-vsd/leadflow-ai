@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { getMe } from "@/services/authService";
+import { getMe, logout as logoutUser } from "@/services/authService";
 import type { User } from "../types/authTypes";
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
+    loading: boolean;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
-    logout: () => void
+    logout: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
     //const isAuthenticated = user !== null
 
@@ -27,6 +29,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 setUser(response.data)
             } catch (error) {
                 setUser(null)
+            } finally {
+                setLoading(false)
             }
         }
 
@@ -34,9 +38,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, [])
 
     const isAuthenticated = !!user
-    
-    const logout = () => {
-        setUser(null)
+
+    const logout = async () => {
+        try {
+            await logoutUser()
+        } finally{
+            setUser(null);
+        }
     }
 
     return (
@@ -45,6 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 user,
                 setUser,
                 isAuthenticated,
+                loading,
                 logout
             }}
         >

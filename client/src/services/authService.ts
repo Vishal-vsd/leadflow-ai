@@ -26,3 +26,8 @@ export const getMe = async (): Promise<AuthResponse> => {
 
   return response.data;
 }
+
+export const logout = async (): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>("auth/logout")
+  return response.data;
+}
