@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { getMe } from "@/services/authService";
 import type { User } from "../types/authTypes";
 
 interface AuthContextType {
@@ -16,9 +17,24 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [user, setUser] = useState<User | null>(null);
-    const isAuthenticated = !!user
+
     //const isAuthenticated = user !== null
 
+    useEffect(() => {
+        const restoreSession = async () => {
+            try {
+                const response = await getMe();
+                setUser(response.data)
+            } catch (error) {
+                setUser(null)
+            }
+        }
+
+        restoreSession()
+    }, [])
+
+    const isAuthenticated = !!user
+    
     const logout = () => {
         setUser(null)
     }
