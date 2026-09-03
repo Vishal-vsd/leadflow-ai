@@ -20,3 +20,9 @@ export const register = async (
 
   return response.data;
 };
+
+export const getMe = async (): Promise<AuthResponse> => {
+  const response = await api.get<AuthResponse>("auth/me");
+
+  return response.data;
+}
