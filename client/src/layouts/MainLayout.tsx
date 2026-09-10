@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { LogOut, LayoutDashboard, Users } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
@@ -17,21 +17,31 @@ export default function MainLayout() {
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
-          <a
-            href="/"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`
+            }
           >
             <LayoutDashboard className="size-4" />
             Dashboard
-          </a>
+          </NavLink>
 
-          <a
-            href="/leads"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted"
+          <NavLink
+            to="/leads"
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`
+            }
           >
             <Users className="size-4" />
             Leads
-          </a>
+          </NavLink>
         </nav>
 
         <div className="border-t p-4">
